@@ -1,18 +1,6 @@
-package command
+package main
 
-import (
-	"fmt"
-	"gator/internal/config"
-)
-
-type state struct {
-	Config *config.Config
-}
-
-type command struct {
-	Name string
-	Args []string
-}
+import "fmt"
 
 func handlerLogin(s *state, cmd command) error {
 	if len(cmd.Args) < 1 {
@@ -20,7 +8,8 @@ func handlerLogin(s *state, cmd command) error {
 	}
 
 	username := cmd.Args[0]
-	err := s.Config.SetUser(username)
+
+	err := s.cfg.SetUser(username)
 	if err != nil {
 		return fmt.Errorf("failed to set user: %v", err)
 	}
