@@ -1,6 +1,13 @@
 package main
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+	"gator/internal/database"
+	"time"
+
+	"github.com/google/uuid"
+)
 
 func handlerLogin(s *state, cmd command) error {
 	if len(cmd.Args) < 1 {
@@ -9,7 +16,12 @@ func handlerLogin(s *state, cmd command) error {
 
 	username := cmd.Args[0]
 
-	err := s.cfg.SetUser(username)
+	foundUser, err := s.db.GetUser(context.Background(), username)
+	if err != nil {
+		return fmt.Errorf("failed to find user: %v", err)
+	}
+
+	err = s.cfg.SetUser(foundUser.Name)
 	if err != nil {
 		return fmt.Errorf("failed to set user: %v", err)
 	}
