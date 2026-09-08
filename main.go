@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"gator/internal/config"
 	"log"
 	"os"
@@ -17,15 +16,22 @@ func main() {
 		log.Fatalf("error reading config: %v", err)
 	}
 
-	err = cfg.SetUser("erlangga")
-	if err != nil {
-		log.Fatalf("error setting user: %v", err)
+	programState := &state{cfg: &cfg}
+
+	cmds := commands{
+		registeredCommands: make(map[string]func(*state, command) error),
+	}
+	cmds.register("login", handlerLogin)
+
+	if len(os.Args) < 2 {
+		log.Fatal("usage: cli <command> [args...]")
 	}
 
-	cfg, err = config.Read()
+	cmdName := os.Args[1]
+	cmdArgs := os.Args[2:]
+
+	err = cmds.run(programState, command{Name: cmdName, Args: cmdArgs})
 	if err != nil {
-		log.Fatalf("error reading config: %v", err)
+		log.Fatalf("error running command: %v", err)
 	}
-	fmt.Println(cfg.DBURL)
-	os.Exit(0)
 }
