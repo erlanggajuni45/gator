@@ -55,3 +55,13 @@ func handlerRegister(s *state, cmd command) error {
 	fmt.Printf("User '%s' has been registered and set as the current user.\n", user.Name)
 	return nil
 }
+
+func handlerResetUsers(s *state, cmd command) error {
+	err := s.db.ResetUsers(context.Background())
+	if err != nil {
+		return fmt.Errorf("failed to reset users: %v", err)
+	}
+
+	fmt.Println("All users have been reset.")
+	return nil
+}
