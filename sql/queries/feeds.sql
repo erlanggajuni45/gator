@@ -15,3 +15,6 @@ JOIN users b ON a.user_id = b.id;
 
 -- name: GetFeedByURL :one
 SELECT * FROM feeds WHERE url = $1;
+
+-- name: MarkFeedFetched :one
+UPDATE feeds SET last_fetched_at = NOW(), updated_at = NOW() WHERE id = $1 RETURNING *;
