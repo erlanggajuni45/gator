@@ -89,18 +89,13 @@ func handleFetchFeed(state *state, cmd command) error {
 	return nil
 }
 
-func handleAddFeed(state *state, cmd command) error {
+func handleAddFeed(state *state, cmd command, user database.User) error {
 	if len(cmd.Args) < 2 {
 		return fmt.Errorf("usage: add <feed_name> <feed_url>")
 	}
 
 	feedName := cmd.Args[0]
 	feedURL := cmd.Args[1]
-
-	user, err := state.db.GetUser(context.Background(), state.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("error getting user: %v", err)
-	}
 
 	newFeed, err := state.db.CreateFeed(context.Background(), database.CreateFeedParams{
 		Name:   feedName,

@@ -6,17 +6,12 @@ import (
 	"gator/internal/database"
 )
 
-func feedFollowsHandler(s *state, cmd command) error {
+func feedFollowsHandler(s *state, cmd command, user database.User) error {
 	if len(cmd.Args) < 1 {
 		return fmt.Errorf("missing feed URL")
 	}
 
 	feedURL := cmd.Args[0]
-
-	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("user not found: %w", err)
-	}
 
 	feed, err := s.db.GetFeedByURL(context.Background(), feedURL)
 
@@ -33,12 +28,7 @@ func feedFollowsHandler(s *state, cmd command) error {
 	return nil
 }
 
-func followingHandler(s *state, cmd command) error {
-	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("user not found: %w", err)
-	}
-
+func followingHandler(s *state, cmd command, user database.User) error {
 	follows, err := s.db.GetFeedFollowsForUser(context.Background(), user.ID)
 	if err != nil {
 		return fmt.Errorf("failed to get feed follows: %w", err)
