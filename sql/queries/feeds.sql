@@ -8,3 +8,6 @@ INSERT INTO feeds (
     $2,
     $3
 ) RETURNING *;
+
+-- name: GetFeeds :many
+SELECT * FROM feeds;
