@@ -118,6 +118,13 @@ func handleAddFeed(state *state, cmd command) error {
 	fmt.Printf("Feed UpdatedAt: %s\n", newFeed.UpdatedAt)
 	fmt.Printf("Feed UserID: %s\n", newFeed.UserID)
 
+	_, err = state.db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
+		FeedID: newFeed.ID,
+		UserID: user.ID,
+	})
+	if err != nil {
+		return fmt.Errorf("error following feed: %v", err)
+	}
 	return nil
 }
 
