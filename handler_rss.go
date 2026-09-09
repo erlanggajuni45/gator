@@ -7,7 +7,9 @@ import (
 	"gator/internal/database"
 	"html"
 	"io"
+	"log"
 	"net/http"
+	"time"
 )
 
 type RSSFeed struct {
@@ -65,28 +67,50 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 }
 
 func handleFetchFeed(state *state, cmd command) error {
-	// if len(cmd.Args) < 1 {
-	// 	return fmt.Errorf("usage: agg <feed_url>")
-	// }
+	if len(cmd.Args) != 1 {
+		return fmt.Errorf("usage: %v <time_between_reqs>", cmd.Name)
+	}
 
-	feedURL := "https://www.wagslane.dev/index.xml"
-	feed, err := fetchFeed(context.Background(), feedURL)
+	timeBetweenReqs, err := time.ParseDuration(cmd.Args[0])
 	if err != nil {
-		return fmt.Errorf("error fetching feed: %v", err)
+		return fmt.Errorf("invalid time_between_reqs: %v", err)
 	}
 
-	fmt.Printf("Feed Title: %s\n", feed.Channel.Title)
-	fmt.Printf("Feed Link: %s\n", feed.Channel.Link)
-	fmt.Printf("Feed Description: %s\n", feed.Channel.Description)
-	fmt.Println("Items:")
-	for _, item := range feed.Channel.Items {
-		fmt.Printf("- Title: %s\n", item.Title)
-		fmt.Printf("  Link: %s\n", item.Link)
-		fmt.Printf("  Description: %s\n", item.Description)
-		fmt.Printf("  PubDate: %s\n", item.PubDate)
+	log.Printf("Collecting feed every %v\n", timeBetweenReqs)
+
+	ticker := time.NewTicker(timeBetweenReqs)
+	for ; ; <-ticker.C {
+		scrapeFeeds(state)
+	}
+}
+
+func scrapeFeeds(s *state) {
+	feed, err := s.db.GetNextFeedToFetch(context.Background())
+	if err != nil {
+		log.Printf("error fetching feed: %v", err)
+		return
 	}
 
-	return nil
+	log.Println("found a feed to fetch!")
+	scrapeFeed(s.db, feed)
+}
+
+func scrapeFeed(db *database.Queries, feed database.Feed) {
+	_, err := db.MarkFeedFetched(context.Background(), feed.ID)
+	if err != nil {
+		log.Printf("error marking feed fetched: %v", err)
+		return
+	}
+
+	feedData, err := fetchFeed(context.Background(), feed.Url)
+	if err != nil {
+		log.Printf("error fetching feed: %v", err)
+		return
+	}
+
+	for _, item := range feedData.Channel.Items {
+		fmt.Printf("Found post: %s\n", item.Title)
+	}
 }
 
 func handleAddFeed(state *state, cmd command, user database.User) error {
