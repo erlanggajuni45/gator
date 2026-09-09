@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/xml"
 	"fmt"
+	"gator/internal/database"
 	"html"
 	"io"
 	"net/http"
@@ -84,6 +85,38 @@ func handleFetchFeed(state *state, cmd command) error {
 		fmt.Printf("  Description: %s\n", item.Description)
 		fmt.Printf("  PubDate: %s\n", item.PubDate)
 	}
+
+	return nil
+}
+
+func handleAddFeed(state *state, cmd command) error {
+	if len(cmd.Args) < 2 {
+		return fmt.Errorf("usage: add <feed_name> <feed_url>")
+	}
+
+	feedName := cmd.Args[0]
+	feedURL := cmd.Args[1]
+
+	user, err := state.db.GetUser(context.Background(), state.cfg.CurrentUserName)
+	if err != nil {
+		return fmt.Errorf("error getting user: %v", err)
+	}
+
+	newFeed, err := state.db.CreateFeed(context.Background(), database.CreateFeedParams{
+		Name:   feedName,
+		Url:    feedURL,
+		UserID: user.ID,
+	})
+	if err != nil {
+		return fmt.Errorf("error adding feed: %v", err)
+	}
+
+	fmt.Printf("Feed added: %s\n", newFeed.Name)
+	fmt.Printf("Feed URL: %s\n", newFeed.Url)
+	fmt.Printf("Feed ID: %s\n", newFeed.ID)
+	fmt.Printf("Feed CreatedAt: %s\n", newFeed.CreatedAt)
+	fmt.Printf("Feed UpdatedAt: %s\n", newFeed.UpdatedAt)
+	fmt.Printf("Feed UserID: %s\n", newFeed.UserID)
 
 	return nil
 }
