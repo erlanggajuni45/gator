@@ -2,10 +2,11 @@ package main
 
 import (
 	"database/sql"
-	"gator/internal/config"
-	"gator/internal/database"
 	"log"
 	"os"
+
+	"github.com/erlanggajuni45/gator/internal/config"
+	"github.com/erlanggajuni45/gator/internal/database"
 
 	_ "github.com/lib/pq"
 )
@@ -44,6 +45,7 @@ func main() {
 	cmds.register("follow", middlewareLoggedIn(feedFollowsHandler))
 	cmds.register("following", middlewareLoggedIn(followingHandler))
 	cmds.register("unfollow", middlewareLoggedIn(deleteFeedFollowHandler))
+	cmds.register("browse", middlewareLoggedIn(handlerBrowse))
 
 	if len(os.Args) < 2 {
 		log.Fatal("usage: cli <command> [args...]")
